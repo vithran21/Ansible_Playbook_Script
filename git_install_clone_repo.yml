@@ -1,0 +1,19 @@
+---
+- name: Install git and clone a repo
+  hosts: worker
+  user: ansible
+  become: yes
+  connection: ssh
+  tasks:
+    - name: installing git
+      yum:
+        name: git
+        state: present
+
+    - name: Cloning the repo
+      git:
+        repo: 'https://github.com/vithran21/React-Key-Concepts.git'
+        dest: /home/ansible/ReactProject
+        version: main
+        force: yes
+        update: yes
