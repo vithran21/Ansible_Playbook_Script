@@ -1,0 +1,21 @@
+---
+- name: Installing Maven
+  hosts: worker
+  user: ansible
+  become: yes
+  connection: ssh
+  tasks:
+    - name: installing java if absent
+      yum:
+        name: java-17*
+        state: present
+    - name: installing maven if absent
+      yum:
+        name: maven
+        state: present
+    - name: Verify mvn install
+      command: mvn -v
+      register: mvn_ver
+    - name: Displaying mvn version
+      debug:
+        var: mvn_ver.stdout
