@@ -1,0 +1,44 @@
+---
+- name: Install Jenkins on Worker Node
+  hosts: worker
+  become: yes
+  connection: ssh
+  tasks:
+    - name: Create install_jenkins.sh script on the control node
+      delegate_to: localhost
+      copy:
+        dest: install_jenkins.sh
+        content: |
+          #!/bin/bash
+
+          # Update the system
+          sudo yum update -y
+
+          # Add the Jenkins repository
+          sudo wget -O /etc/yum.repos.d/jenkins.repo \
+              https://pkg.jenkins.io/redhat-stable/jenkins.repo
+
+          # Import the Jenkins GPG key
+          sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+          # Install Java 17 and fontconfig dependencies
+          sudo yum install -y java-17-openjdk fontconfig
+
+          # Install Jenkins
+          sudo yum install -y jenkins
+
+          # Start Jenkins and enable it to run on boot
+          sudo systemctl start jenkins
+          sudo systemctl enable jenkins
+
+          # Print Jenkins status
+          sudo systemctl status jenkins
+
+    - name: Copy the install_jenkins.sh script to the worker node
+      copy:
+        src: install_jenkins.sh
+        dest: /home/ansible/install_jenkins.sh
+        mode: '0755'
+
+    - name: Execute install_jenkins.sh script on worker node
+      command: sh /home/ansible/install_jenkins.sh
