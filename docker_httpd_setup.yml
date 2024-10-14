@@ -1,0 +1,51 @@
+---
+- name: Install docker, pull and run httpd container
+  hosts: worker
+  user: ansible
+  become: yes
+  connection: ssh
+  tasks:
+    - name: check docker is installed
+      command: "docker --version"
+      register: docker_version
+      ignore_errors: yes
+
+    - name: printing dict docker_version
+      debug:
+        var: docker_version
+
+    - name: install docker if absent
+      yum:
+        name: docker
+        state: present
+      when: docker_version is defined and (docker_version.rc != 0)
+
+    - name: Ensuring docker service is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+
+    - name: Pull httpd image
+      command: docker pull httpd
+      register: pull_result
+
+    - name: Display pull result
+      debug:
+        msg: "{{ pull_result.stdout }}"
+
+    - name: Run httpd container
+      command: docker run -d --name webapp -p 80:80 httpd
+      register: run_result
+      ignore_errors: yes
+
+    - name: Display container run result
+      debug:
+        msg: "{{ run_result }}"
+
+    - name: Listing running containers
+      command: docker ps
+      register: running_containers
+
+    - name: Display container list
+      debug:
+        msg: "{{ running_containers.stdout }}"
